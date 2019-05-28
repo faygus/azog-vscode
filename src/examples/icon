@@ -1,0 +1,14 @@
+{
+	"views": {
+		"1": {
+			"type": "iconWF",
+			"value": {
+				"iconName": "calendar",
+				"style": {
+					"color": 2,
+					"size": 2
+				}
+			}
+		}
+	}
+}

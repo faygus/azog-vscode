@@ -1,0 +1,1 @@
+run "npm run build" to generate a bundle in ./dist/bundle.js" that will be loaded in the webview
