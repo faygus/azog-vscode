@@ -1,14 +1,20 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 
+/**
+ * handle the webview which shows the azog view
+ */
 export class WebViewManager {
+	public associatedDocument?: vscode.TextDocument;
+
 	private _currentPanel?: vscode.WebviewPanel;
 
 	constructor(private _context: vscode.ExtensionContext) {
 
 	}
 
-	show(data: {}): void {
+	show(document: vscode.TextDocument, data: {}): void {
+		this.associatedDocument = document;
 		if (!this._currentPanel) {
 			this._currentPanel = this.createWebView();
 		}
@@ -21,13 +27,23 @@ export class WebViewManager {
 		if (this._currentPanel) {
 			this._currentPanel.dispose();
 		}
+		this.associatedDocument = undefined;
+	}
+
+	get isSelected(): boolean {
+		return this._currentPanel !== undefined && this._currentPanel.active;
 	}
 
 	private createWebView(): vscode.WebviewPanel {
+		// workbench.editor.openSideBySideDirection
 		const panel = vscode.window.createWebviewPanel(
 			'hahahah', // Identifies the type of the webview. Used internally
 			'Azog view', // Title of the panel displayed to the user
-			vscode.ViewColumn.Two, // Editor column to show the new webview panel in.
+			// Editor column to show the new webview panel in.
+			{
+				viewColumn: vscode.ViewColumn.Beside,
+				preserveFocus: true
+			},
 			{
 				// Enable scripts in the webview
 				enableScripts: true,
@@ -35,7 +51,6 @@ export class WebViewManager {
 				localResourceRoots: [vscode.Uri.file(path.join(this._context.extensionPath, 'webview-files', 'dist'))]
 			}
 		);
-		panel.title = 'Coding Cat';
 		const scriptUri = getScriptUri(this._context.extensionPath);
 		panel.webview.html = getWebviewContent(scriptUri);
 		panel.onDidDispose(
@@ -56,7 +71,7 @@ function getWebviewContent(scriptUri: vscode.Uri) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cat Coding</title>
+    <title>Azog view</title>
 </head>
 <body>
 		<script src="${scriptUri}"/>
@@ -71,6 +86,5 @@ function getScriptUri(extensionPath: string): vscode.Uri {
 	);
 	// And get the special URI to use with the webview
 	const scriptSrc = onDiskPath.with({ scheme: 'vscode-resource' });
-	console.log('script uri', scriptSrc);
 	return scriptSrc;
 }

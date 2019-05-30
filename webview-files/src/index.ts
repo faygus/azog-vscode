@@ -2,9 +2,10 @@ import * as azog from 'azog';
 require("../node_modules/font-awesome/css/font-awesome.min.css");
 
 const containerHtml = document.createElement('div');
-containerHtml.style.width = '400px';
+containerHtml.style.width = '90%';
+containerHtml.style.margin = 'auto';
 containerHtml.style.height = '200px';
-containerHtml.style.border = 'solid 2px red';
+containerHtml.style.border = 'solid 1px purple';
 containerHtml.style.position = 'relative';
 document.body.appendChild(containerHtml);
 
