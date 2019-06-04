@@ -3,19 +3,29 @@ import * as path from 'path';
 import { WebViewManager } from './webview';
 import { createView } from './create-view';
 import { TextEditorEvents } from './editor-events';
+import { initSmartEditing } from './smart-editing/init';
+import { workspaceManager } from './workspace-manager';
+import { readViewFiles } from './read-view-files';
 
 export function runExtension(context: vscode.ExtensionContext): void {
+	const rootPath = vscode.workspace.rootPath;
+	if (!rootPath) {
+		console.warn('no workspace opened');
+	} else {
+		workspaceManager.initWorkspace(rootPath);
+	}
+	initSmartEditing();
+
 	const config = vscode.workspace.getConfiguration('azog');
 	config.update('extensionActivated', true);
 
 	vscode.commands.registerCommand('newView', () => {
 		createView();
 	});
-	// prompt a message to the user
-	/*vscode.window.showInputBox({
-		placeHolder: 'i like tennis',
-		prompt: 'write what you want'
-	});*/
+	vscode.commands.registerCommand('navigateToViewModelInterface', () => {
+		vscode.window.showInformationMessage('navigate to view model interface');
+		// TODO
+	});
 	const webViewManager = new WebViewManager(context);
 	listenActiveTextEditorChange(webViewManager);
 	listenTextChange(webViewManager);
@@ -27,11 +37,6 @@ function listenActiveTextEditorChange(webViewManager: WebViewManager): void {
 	}
 	const textEditorEvents = new TextEditorEvents();
 	textEditorEvents.activeTextEditorChanged$.subscribe(editor => {
-		/*if (editor) {
-			console.log('activeTextEditorChanged', path.basename(editor.document.fileName));
-		} else {
-			console.log('activeTextEditorChanged : no editor');
-		}*/
 		if (!editor) {
 			if (webViewManager.isSelected && webViewManager.associatedDocument) {
 				const documents = vscode.window.visibleTextEditors.map(a => a.document);
@@ -68,13 +73,14 @@ function listenTextChange(webViewManager: WebViewManager) {
 }
 
 function processDocument(document: vscode.TextDocument, webViewManager: WebViewManager): void {
-	const fileName = path.basename(document.fileName);
-	const content = document.getText();
+	if (!workspaceManager.pathIsView(document.fileName)) {
+		webViewManager.close();
+		return;
+	}
 	try {
-		const data = JSON.parse(content);
+		const data = readViewFiles(document);
 		webViewManager.show(document, data);
 	} catch (err) {
-		console.log('close 3');
 		webViewManager.close();
 	}
 }

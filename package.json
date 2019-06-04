@@ -18,6 +18,11 @@
 			{
 				"command": "newView",
 				"title": "New Azog view"
+			},
+			{
+				"command": "navigateToViewModelInterface",
+				"title": "Navigate to View Model",
+				"category": "Azog"
 			}
 		],
 		"menus": {
@@ -25,12 +30,22 @@
 				{
 					"command": "newView",
 					"when": "config.azog.extensionActivated"
+				},
+				{
+					"command": "navigateToViewModelInterface",
+					"when": "false"
 				}
 			],
 			"explorer/context": [
 				{
 					"command": "newView",
 					"when": "config.azog.extensionActivated"
+				}
+			],
+			"editor/context": [
+				{
+					"command": "navigateToViewModelInterface",
+					"group": "toto"
 				}
 			]
 		},
@@ -51,7 +66,8 @@
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"postinstall": "node ./node_modules/vscode/bin/install",
-		"test": "npm run compile && node ./node_modules/vscode/bin/test"
+		"test": "npm run compile && node ./node_modules/vscode/bin/test",
+		"link": "npm link vscode-azog-language-features"
 	},
 	"devDependencies": {
 		"typescript": "^3.3.1",

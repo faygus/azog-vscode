@@ -1,0 +1,14 @@
+/*vscode.languages.registerHoverProvider('json', {
+		provideHover(document, position, token) {
+			return {
+				contents: ['Hover Content']
+			};
+		}
+});*/
+
+
+	// prompt a message to the user
+	/*vscode.window.showInputBox({
+		placeHolder: 'i like tennis',
+		prompt: 'write what you want'
+	});*/
