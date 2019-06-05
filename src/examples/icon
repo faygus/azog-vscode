@@ -1,14 +1,4 @@
-{
-	"views": {
-		"1": {
-			"type": "iconWF",
-			"value": {
-				"iconName": "calendar",
-				"style": {
-					"color": 2,
-					"size": 2
-				}
-			}
-		}
-	}
-}
+<IconWF iconName="user">
+	<IconWF.Style color="2" size="2">
+	</IconWF.Style>
+</IconWF>

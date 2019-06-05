@@ -2,11 +2,12 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { workspaceManager } from './workspace-manager';
+import * as azogLanguage from 'vscode-azog-language-features';
 
 /**
  * Read the view, view model interface and mock view model files
  */
-export function readViewFiles(document: vscode.TextDocument) {
+export async function readViewFiles(document: vscode.TextDocument) {
 	const viewFileNameWithExtension = path.basename(document.fileName);
 	const viewId = path.parse(viewFileNameWithExtension).name;
 	const vmMockPath = workspaceManager.getViewModeMockPath(viewId);
@@ -16,7 +17,9 @@ export function readViewFiles(document: vscode.TextDocument) {
 
 	const vmItf = JSON.parse(vmItfContent);
 	const vmMock = JSON.parse(vmMockContent);
-	const view = JSON.parse(document.getText());
+	const view = await azogLanguage.xmlToAzog(document.getText());
+	console.log('view', JSON.stringify(view));
+
 	return {
 		views: {
 			[viewId]: view
@@ -27,5 +30,5 @@ export function readViewFiles(document: vscode.TextDocument) {
 		mockViewModels: {
 			[viewId]: vmMock
 		}
-	}
+	};
 }

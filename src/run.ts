@@ -72,13 +72,13 @@ function listenTextChange(webViewManager: WebViewManager) {
 	});
 }
 
-function processDocument(document: vscode.TextDocument, webViewManager: WebViewManager): void {
+async function processDocument(document: vscode.TextDocument, webViewManager: WebViewManager) {
 	if (!workspaceManager.pathIsView(document.fileName)) {
 		webViewManager.close();
 		return;
 	}
 	try {
-		const data = readViewFiles(document);
+		const data = await readViewFiles(document);
 		webViewManager.show(document, data);
 	} catch (err) {
 		webViewManager.close();
