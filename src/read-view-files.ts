@@ -18,11 +18,9 @@ export async function readViewFiles(document: vscode.TextDocument) {
 	const vmItf = JSON.parse(vmItfContent);
 	const vmMock = JSON.parse(vmMockContent);
 	const view = await azogLanguage.xmlToAzog(document.getText());
-	console.log('view', JSON.stringify(view));
-
 	return {
 		views: {
-			[viewId]: view
+			1: view // the id must be 1
 		},
 		viewModelInterfaces: {
 			[viewId]: vmItf
