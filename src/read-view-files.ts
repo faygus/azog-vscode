@@ -17,16 +17,21 @@ export async function readViewFiles(document: vscode.TextDocument) {
 
 	const vmItf = JSON.parse(vmItfContent);
 	const vmMock = JSON.parse(vmMockContent);
-	const view = await azogLanguage.xmlToAzog(document.getText());
-	return {
-		views: {
-			1: view // the id must be 1
-		},
-		viewModelInterfaces: {
-			[viewId]: vmItf
-		},
-		mockViewModels: {
-			[viewId]: vmMock
-		}
-	};
+	try {
+		const view = await azogLanguage.xmlToAzog(document.getText());
+		return {
+			views: {
+				1: view // the id must be 1
+			},
+			viewModelInterfaces: {
+				[viewId]: vmItf
+			},
+			mockViewModels: {
+				[viewId]: vmMock
+			}
+		};
+	} catch (err) {
+		console.log('error when parsing view :', err.message);
+		throw new Error(err);
+	}
 }
