@@ -14,6 +14,7 @@ export class WebViewManager {
 	}
 
 	show(document: vscode.TextDocument, data: {}): void {
+		console.log('show webview', data);
 		this.associatedDocument = document;
 		if (!this._currentPanel) {
 			this._currentPanel = this.createWebView();

@@ -13,3 +13,7 @@ npm run build
 ## Run the extension
 
 Launch the task "Run Extension"
+
+## Depends on azog library
+
+In dev mode, run "npm link azog"

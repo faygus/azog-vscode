@@ -1,11 +1,20 @@
 import * as fs from 'fs';
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { arrayFromEnum } from './utils/enum';
+
+export enum FileType {
+	VIEW,
+	VIEW_MODEL_ITF,
+	VIEW_MODEL_MOCK,
+	PIPE
+}
 
 export const WORKSPACE_FOLDERS = {
-	views: 'views',
-	viewModelsInterfaces: 'view-models.itf',
-	viewModelsMock: 'view-models.mock',
+	[FileType.VIEW]: 'views',
+	[FileType.VIEW_MODEL_ITF]: 'view-models.itf',
+	[FileType.VIEW_MODEL_MOCK]: 'view-models.mock',
+	[FileType.PIPE]: 'pipes',
 };
 
 export class WorkspaceManager {
@@ -20,11 +29,7 @@ export class WorkspaceManager {
  	*/
 	initWorkspace(rootPath: string): void {
 		this._rootPath = rootPath;
-		const folderNames = [
-			WORKSPACE_FOLDERS.views,
-			WORKSPACE_FOLDERS.viewModelsInterfaces,
-			WORKSPACE_FOLDERS.viewModelsMock
-		];
+		const folderNames = Object.values(WORKSPACE_FOLDERS);
 		for (const folderName of folderNames) {
 			const dir = path.join(rootPath, folderName);
 			createFolderIfNotExist(dir);
@@ -33,15 +38,43 @@ export class WorkspaceManager {
 
 	pathIsView(filePath: string): boolean {
 		const dirName = path.basename(path.dirname(filePath));
-		return dirName === WORKSPACE_FOLDERS.views;
+		return dirName === WORKSPACE_FOLDERS[FileType.VIEW];
+	}
+
+	pathIsViewModelInterface(filePath: string): boolean {
+		const dirName = path.basename(path.dirname(filePath));
+		return dirName === WORKSPACE_FOLDERS[FileType.VIEW_MODEL_ITF];
 	}
 
 	getViewModelInterfacePath(viewId: string): string {
-		return path.join(this._rootPath!, WORKSPACE_FOLDERS.viewModelsInterfaces, viewId);
+		return path.join(this._rootPath!, WORKSPACE_FOLDERS[FileType.VIEW_MODEL_ITF], viewId);
 	}
 
-	getViewModeMockPath(viewId: string): string {
-		return path.join(this._rootPath!, WORKSPACE_FOLDERS.viewModelsMock, viewId);
+	getViewModelMockPath(viewId: string): string {
+		return path.join(this._rootPath!, WORKSPACE_FOLDERS[FileType.VIEW_MODEL_MOCK], viewId);
+	}
+
+	getFileInfos(filePath: string): IFileInfos {
+		const fileNameWithExtension = path.basename(filePath);
+		const dirName = path.basename(path.dirname(filePath));
+		const fileName = path.parse(fileNameWithExtension).name;
+		const fileType = <FileType>Object.keys(WORKSPACE_FOLDERS).map(a => Number(a)).find(a => {
+			const fileType = <FileType>a;
+			return WORKSPACE_FOLDERS[fileType] === dirName;
+		});
+		const viewId = Number(fileName);
+		const content = fs.readFileSync(filePath, 'utf8');
+		switch (fileType) {
+			case FileType.VIEW:
+				return new FileInfos({ viewId }, fileType, content);
+			case FileType.VIEW_MODEL_ITF:
+				return new FileInfos({ viewId }, fileType, content);
+			case FileType.VIEW_MODEL_MOCK:
+				return new FileInfos({ viewId }, fileType, content);
+			case FileType.PIPE:
+				const id = Number(fileName);
+				return new FileInfos({ id }, fileType, content);
+		}
 	}
 }
 
@@ -66,6 +99,24 @@ function writeAzogFile(): void {
 		}
 		console.log("The file was saved!");
 	});
+}
+
+type IFileInfos = FileInfos<FileType.VIEW> |
+	FileInfos<FileType.VIEW_MODEL_ITF> |
+	FileInfos<FileType.VIEW_MODEL_MOCK> |
+	FileInfos<FileType.PIPE>;
+
+interface IFileInfosDetailMappingTypes {
+	[FileType.VIEW]: { viewId: number };
+	[FileType.VIEW_MODEL_ITF]: { viewId: number };
+	[FileType.VIEW_MODEL_MOCK]: { viewId: number };
+	[FileType.PIPE]: { id: number };
+}
+
+class FileInfos<T extends keyof IFileInfosDetailMappingTypes> {
+	constructor(public detail: IFileInfosDetailMappingTypes[T], public type: T, public content: string) {
+
+	}
 }
 
 export const workspaceManager = new WorkspaceManager();

@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
-import { WebViewManager } from './webview';
 import { createView } from './create-view';
-import { TextEditorEvents } from './editor-events';
-import { initSmartEditing } from './smart-editing/init';
-import { workspaceManager } from './workspace-manager';
+import { textEditorEvents } from './editor-events';
 import { readViewFiles } from './read-view-files';
+import { WebViewManager } from './webview';
+import { workspaceManager } from './workspace-manager';
+import { ViewModelInterfaceFileListener } from './listeners/view-model-interface/listener';
+import { PipeFileListener } from './listeners/pipe/listener';
 
 export function runExtension(context: vscode.ExtensionContext): void {
 	const rootPath = vscode.workspace.rootPath;
@@ -14,8 +14,6 @@ export function runExtension(context: vscode.ExtensionContext): void {
 	} else {
 		workspaceManager.initWorkspace(rootPath);
 	}
-	initSmartEditing();
-
 	const config = vscode.workspace.getConfiguration('azog');
 	config.update('extensionActivated', true);
 
@@ -27,6 +25,10 @@ export function runExtension(context: vscode.ExtensionContext): void {
 		// TODO
 	});
 	const webViewManager = new WebViewManager(context);
+	const viewModelItfListener = new ViewModelInterfaceFileListener();
+	viewModelItfListener.listenTextChange();
+	const pipeFileListener = new PipeFileListener();
+	pipeFileListener.listenTextChange();
 	listenActiveTextEditorChange(webViewManager);
 	listenTextChange(webViewManager);
 }
@@ -35,7 +37,6 @@ function listenActiveTextEditorChange(webViewManager: WebViewManager): void {
 	if (vscode.window.activeTextEditor) {
 		processEditor(vscode.window.activeTextEditor, webViewManager);
 	}
-	const textEditorEvents = new TextEditorEvents();
 	textEditorEvents.activeTextEditorChanged$.subscribe(editor => {
 		if (!editor) {
 			if (webViewManager.isSelected && webViewManager.associatedDocument) {
@@ -72,15 +73,17 @@ function listenTextChange(webViewManager: WebViewManager) {
 	});
 }
 
-async function processDocument(document: vscode.TextDocument, webViewManager: WebViewManager) {
+function processDocument(document: vscode.TextDocument, webViewManager: WebViewManager): void {
 	if (!workspaceManager.pathIsView(document.fileName)) {
 		webViewManager.close();
 		return;
 	}
-	try {
-		const data = await readViewFiles(document);
-		webViewManager.show(document, data);
-	} catch (err) {
-		webViewManager.close();
-	}
+	setTimeout(() => {
+		try {
+			const data = readViewFiles(document);
+			webViewManager.show(document, data);
+		} catch (err) {
+			webViewManager.close();
+		}
+	}, 10); // wait parsing
 }
