@@ -33,13 +33,27 @@ export function readViewFiles(document: vscode.TextDocument): AzogInterface.IApp
 		}
 		return {
 			views: {
-				1: intepretation.template // the id must be 1
+				1: intepretation.template, // the id must be 1,
+				2: { // TODO
+					type: 'labelWF',
+					value: {
+						text: 'hey girl :))))',
+						style: {
+							color: 0,
+							size: 0
+						}
+					}
+				}
 			},
 			viewModelInterfaces: {
-				1: intepretation.viewModelInterface
+				1: intepretation.viewModelInterface,
+				2: { // TODO
+					properties: {}
+				}
 			},
 			mockViewModels: {
-				1: vmMock
+				1: vmMock,
+				2: {}, // TODO
 			}
 		};
 	} catch (err) {
