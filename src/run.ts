@@ -39,15 +39,10 @@ function listenActiveTextEditorChange(webViewManager: WebViewManager): void {
 	}
 	textEditorEvents.activeTextEditorChanged$.subscribe(editor => {
 		if (!editor) {
-			if (webViewManager.isSelected && webViewManager.associatedDocument) {
-				const documents = vscode.window.visibleTextEditors.map(a => a.document);
-				if (documents.indexOf(webViewManager.associatedDocument) >= 0) {
-					// editor is undefined when the user selects the webview. So we can not close
-					// webview everytime the editor is undefined
-					return;
-				}
-			}
 			webViewManager.close();
+			return;
+		}
+		if (editor.document.fileName === 'tasks') { // webview selected ?
 			return;
 		}
 		processEditor(editor, webViewManager);
@@ -83,6 +78,7 @@ function processDocument(document: vscode.TextDocument, webViewManager: WebViewM
 			const data = readViewFiles(document);
 			webViewManager.show(document, data);
 		} catch (err) {
+			console.error('can not show webview');
 			webViewManager.close();
 		}
 	}, 10); // wait parsing

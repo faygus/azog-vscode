@@ -51,7 +51,7 @@ export class WorkspaceManager {
 	}
 
 	getViewModelMockPath(viewId: string): string {
-		return path.join(this._rootPath!, WORKSPACE_FOLDERS[FileType.VIEW_MODEL_MOCK], viewId);
+		return path.join(this._rootPath!, WORKSPACE_FOLDERS[FileType.VIEW_MODEL_MOCK], viewId + '.json');
 	}
 
 	getFileInfos(filePath: string): IFileInfos {

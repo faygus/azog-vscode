@@ -2,41 +2,44 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { workspaceManager } from './workspace-manager';
-import * as azogLanguage from 'vscode-azog-language-features';
+import * as AzogLanguage from 'vscode-azog-language-features';
+import * as AzogInterface from 'azog-interface';
 
 /**
  * Read the view, view model interface and mock view model files
  */
-export function readViewFiles(document: vscode.TextDocument): {} {
-	console.log('readViewFiles');
+export function readViewFiles(document: vscode.TextDocument): AzogInterface.IAppJSON {
 	const viewFileNameWithExtension = path.basename(document.fileName);
 	const viewId = path.parse(viewFileNameWithExtension).name;
 	const vmMockPath = workspaceManager.getViewModelMockPath(viewId);
-	const vmItfPath = workspaceManager.getViewModelInterfacePath(viewId);
-	const vmItfContent = fs.readFileSync(vmItfPath, 'utf8');
 	const vmMockContent = fs.readFileSync(vmMockPath, 'utf8');
-
-	const vmItf = JSON.parse(vmItfContent);
-	const vmMock = JSON.parse(vmMockContent);
+	let vmMock: any;
 	try {
-		const parsingData = azogLanguage.ParsingDataProvider.parsingResults.get(document);
-		if (!parsingData) {
-			throw new Error('no parsing data for this view');
+		vmMock = JSON.parse(vmMockContent);
+	} catch {
+		throw new Error('mock file corrupted');
+	}
+	try {
+		const intepretation = AzogLanguage.InterpretationProvider.data.get(document.fileName);
+		// const parsingData = azogLanguage.ParsingDataProvider.parsingResults.get(document);
+		if (!intepretation) {
+			throw new Error('no interpretation for this view');
 		}
-		const view = parsingData.azogConversion;
-		if (!view) {
-			throw new Error('not possible to convert to azog view');
+		if (!intepretation.template) {
+			throw new Error('no template interpretation for this view');
 		}
-		console.log('view', view);
+		if (!intepretation.viewModelInterface) {
+			throw new Error('no view model interface interpretation for this view');
+		}
 		return {
 			views: {
-				1: view // the id must be 1
+				1: intepretation.template // the id must be 1
 			},
 			viewModelInterfaces: {
-				[viewId]: vmItf
+				1: intepretation.viewModelInterface
 			},
 			mockViewModels: {
-				[viewId]: vmMock
+				1: vmMock
 			}
 		};
 	} catch (err) {

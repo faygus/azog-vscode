@@ -4,6 +4,13 @@ import * as vscode from 'vscode';
 
 const delay = 100;
 
+/**
+ * Si l'on ferme l'éditeur actif, on recoit onDidChangeActiveTextEditor avec une valeur null,
+ * puis onDidChangeVisibleTextEditors avec la liste des éditeurs visibles mise à jour,
+ * puis onDidChangeActiveTextEditor avec le nouvel éditeur actif.
+ * Ce comportement est problématique car si l'éditeur actif est null, on ferme la webview.
+ * On fait donc en sorte d'envoyer la mise à jour de l'éditeur actif de manière décallée
+ */
 export class TextEditorEvents {
 	private _activeTextEditorChanged$: Subject<vscode.TextEditor | undefined> = new Subject();
 	private _visibleTextEditorsChanged$: Subject<vscode.TextEditor[]> = new Subject();

@@ -67,7 +67,7 @@
 		"watch": "tsc -watch -p ./",
 		"postinstall": "node ./node_modules/vscode/bin/install",
 		"test": "npm run compile && node ./node_modules/vscode/bin/test",
-		"link": "npm link vscode-azog-language-features",
+		"link": "npm link vscode-azog-language-features && npm link azog-interface",
 		"manual-test": "ts-node --project ./tests/tsconfig.json ./tests/index.ts"
 	},
 	"devDependencies": {
