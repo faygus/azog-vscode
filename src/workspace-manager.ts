@@ -37,8 +37,10 @@ export class WorkspaceManager {
 	}
 
 	pathIsView(filePath: string): boolean {
-		const dirName = path.basename(path.dirname(filePath));
-		return dirName === WORKSPACE_FOLDERS[FileType.VIEW];
+		/*const dirName = path.basename(path.dirname(filePath));
+		return dirName === WORKSPACE_FOLDERS[FileType.VIEW];*/
+		const parse = path.parse(filePath);
+		return parse && parse.ext === '.aml';
 	}
 
 	pathIsViewModelInterface(filePath: string): boolean {

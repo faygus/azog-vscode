@@ -1,11 +1,9 @@
-import * as vscode from 'vscode';
-import { createView } from './create-view';
-import { textEditorEvents } from './editor-events';
-import { readViewFiles } from './read-view-files';
-import { WebViewManager } from './webview';
-import { workspaceManager } from './workspace-manager';
-import { ViewModelInterfaceFileListener } from './listeners/view-model-interface/listener';
-import { PipeFileListener } from './listeners/pipe/listener';
+import * as vscode from "vscode";
+import { createView } from "./create-view";
+import { textEditorEvents } from "./editor-events";
+import { readViewFiles } from "./read-view-files";
+import { WebViewManager } from "./webview";
+import { workspaceManager } from "./workspace-manager";
 
 export function runExtension(context: vscode.ExtensionContext): void {
 	const rootPath = vscode.workspace.rootPath;
@@ -25,10 +23,6 @@ export function runExtension(context: vscode.ExtensionContext): void {
 		// TODO
 	});
 	const webViewManager = new WebViewManager(context);
-	const viewModelItfListener = new ViewModelInterfaceFileListener();
-	viewModelItfListener.listenTextChange();
-	const pipeFileListener = new PipeFileListener();
-	pipeFileListener.listenTextChange();
 	listenActiveTextEditorChange(webViewManager);
 	listenTextChange(webViewManager);
 }
@@ -64,6 +58,7 @@ function processEditor(editor: vscode.TextEditor, webViewManager: WebViewManager
 
 function listenTextChange(webViewManager: WebViewManager) {
 	vscode.workspace.onDidChangeTextDocument(event => {
+		console.log('text change, process document');
 		processDocument(event.document, webViewManager);
 	});
 }
@@ -78,7 +73,7 @@ function processDocument(document: vscode.TextDocument, webViewManager: WebViewM
 			const data = readViewFiles(document);
 			webViewManager.show(document, data);
 		} catch (err) {
-			console.error('can not show webview');
+			console.error('can not show webview', err);
 			webViewManager.close();
 		}
 	}, 10); // wait parsing

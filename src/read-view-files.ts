@@ -9,9 +9,40 @@ import * as AzogInterface from 'azog-interface';
  * Read the view, view model interface and mock view model files
  */
 export function readViewFiles(document: vscode.TextDocument): AzogInterface.IAppJSON {
-	const viewFileNameWithExtension = path.basename(document.fileName);
-	const viewId = path.parse(viewFileNameWithExtension).name;
-	const vmMockPath = workspaceManager.getViewModelMockPath(viewId);
+	const id = AzogLanguage.StaticInterpreter.getIdFromPath(document.fileName);
+	if (id === undefined) {
+		throw new Error('id undefined');
+	}
+	const res = getViewData(document.fileName);
+
+	// change id 1 for interpreter
+	const view = res.views[id];
+	delete res.views[id];
+	res.views[1] = view;
+
+	if (res.viewModelInterfaces) {
+		const viewModel = res.viewModelInterfaces[id];
+		delete res.viewModelInterfaces[id];
+		res.viewModelInterfaces[1] = viewModel;
+	}
+
+	if (res.mockViewModels) {
+		const mock = res.mockViewModels[id];
+		delete res.mockViewModels[id];
+		res.mockViewModels[1] = mock;
+	}
+
+	return res;
+}
+
+function getViewData(filePath: string): AzogInterface.IAppJSON {
+	const intepretation = AzogLanguage.StaticInterpreter.getInterpretation(filePath);
+	if (!intepretation) {
+		throw new Error('no interpretation for ' + filePath);
+	}
+	const id = AzogLanguage.StaticInterpreter.getIdFromPath(filePath);
+	const fileName = path.parse(filePath).name;
+	const vmMockPath = workspaceManager.getViewModelMockPath(fileName);
 	const vmMockContent = fs.readFileSync(vmMockPath, 'utf8');
 	let vmMock: any;
 	try {
@@ -19,45 +50,38 @@ export function readViewFiles(document: vscode.TextDocument): AzogInterface.IApp
 	} catch {
 		throw new Error('mock file corrupted');
 	}
-	try {
-		const intepretation = AzogLanguage.InterpretationProvider.data.get(document.fileName);
-		// const parsingData = azogLanguage.ParsingDataProvider.parsingResults.get(document);
-		if (!intepretation) {
-			throw new Error('no interpretation for this view');
+	const res: AzogInterface.IAppJSON = {
+		views: {
+			[id]: intepretation.template,
+		},
+		viewModelInterfaces: {
+			[id]: intepretation.viewModel
+		},
+		mockViewModels: {
+			[id]: vmMock
 		}
-		if (!intepretation.template) {
-			throw new Error('no template interpretation for this view');
-		}
-		if (!intepretation.viewModelInterface) {
-			throw new Error('no view model interface interpretation for this view');
-		}
-		return {
-			views: {
-				1: intepretation.template, // the id must be 1,
-				2: { // TODO
-					type: 'labelWF',
-					value: {
-						text: 'hey girl :))))',
-						style: {
-							color: 0,
-							size: 0
-						}
-					}
-				}
-			},
-			viewModelInterfaces: {
-				1: intepretation.viewModelInterface,
-				2: { // TODO
-					properties: {}
-				}
-			},
-			mockViewModels: {
-				1: vmMock,
-				2: {}, // TODO
+	};
+	for (const dependency of intepretation.dependencies.views) {
+		const filePath = AzogLanguage.StaticInterpreter.getPathFromId(dependency);
+		if (filePath) {
+			const data = getViewData(filePath);
+			if (data) {
+				res.views = {
+					...res.views,
+					...data.views
+				};
+				res.viewModelInterfaces = {
+					...res.viewModelInterfaces,
+					...data.viewModelInterfaces
+				};
+				res.mockViewModels = {
+					...res.mockViewModels,
+					...data.mockViewModels
+				};
 			}
-		};
-	} catch (err) {
-		console.log('error when parsing view :', err.message);
-		throw new Error(err);
+		} else {
+			console.warn('no path for id', dependency);
+		}
 	}
+	return res;
 }
